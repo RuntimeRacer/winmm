@@ -10,19 +10,23 @@ import "C"
 import "unsafe"
 
 type WaveFormat C.WAVEFORMATEX
+
 const ChMono = 1
 const ChStereo = 2
 const SpS08kHz = 8000
 const SpS11kHz = 11025
+const SpS16kHz = 16000
 const SpS22kHz = 22050
+const SpS24kHz = 24000
 const SpS44kHz = 44100
 const BpS08 = 8
 const BpS16 = 16
+const BpS24 = 24
 
 func NewWaveFormat(ch uint16, sps uint32, bps uint16) WaveFormat {
 	var wFmt = WaveFormat{
-		wFormatTag: C.WAVE_FORMAT_PCM,
-		nChannels: C.WORD(ch),
+		wFormatTag:     C.WAVE_FORMAT_PCM,
+		nChannels:      C.WORD(ch),
 		nSamplesPerSec: C.DWORD(sps),
 		wBitsPerSample: C.WORD(bps),
 	}
@@ -36,17 +40,17 @@ const WaveMapper = uint32(C.WAVE_MAPPER)
 
 type WaveHeader C.WAVEHDR
 
-func NewWaveHeader(wFmt WaveFormat, sec uint32) *WaveHeader {
-	length := wFmt.nSamplesPerSec * C.DWORD(wFmt.nBlockAlign) * C.DWORD(sec)
+func NewWaveHeader(wFmt WaveFormat, milliseconds uint32) *WaveHeader {
+	length := (wFmt.nSamplesPerSec * C.DWORD(wFmt.nBlockAlign) / C.DWORD(1000)) * C.DWORD(milliseconds)
 	return &WaveHeader{
-		lpData: C.LPSTR(C.malloc(C.size_t(length))),
+		lpData:         C.LPSTR(C.malloc(C.size_t(length))),
 		dwBufferLength: C.DWORD(length),
 	}
 }
 
 func CopyWaveHeader(header *WaveHeader) *WaveHeader {
 	return &WaveHeader{
-		lpData: header.lpData,
+		lpData:         header.lpData,
 		dwBufferLength: header.dwBufferLength,
 	}
 }
